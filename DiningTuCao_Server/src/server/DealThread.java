@@ -21,7 +21,7 @@ public class DealThread extends Thread {
     DealThread(Socket cc) {
         this.cc = cc;
         try {
-            this.cc.setSoTimeout(300000);//2分钟该超时时间为了 处理保持与客户端的连接，避免客户端的不正常退回导致的 用户再登陆时报已经在线的错误
+            this.cc.setSoTimeout(600000);//输入流设置超时10分钟该，超时时间为了缓解服务器资源占用，退出线程
         } catch (SocketException e1) {
            e1.printStackTrace();
         }//try
@@ -99,8 +99,7 @@ public class DealThread extends Thread {
 
         }catch (IOException e) {//IO 错误说明是客户端不正常断开
            // e.printStackTrace();
-            if(user!=null)
-                OnlineUser.users.remove(user.getId());//在线用户列表 删除该用户
+         
             try {
                 this.in.close();
                 this.out.close();
@@ -109,10 +108,16 @@ public class DealThread extends Thread {
                 //e1.printStackTrace();
             }finally{
                 //System.out.println("退出线程："+Thread.currentThread().getName());
-                System.out.println("Exitting Thread："+Thread.currentThread().getName());
+                System.out.println("Client stream timeout!Exitting Thread："+Thread.currentThread().getName());
             }//try
         }catch(Exception e){//服务器端错误
                e.printStackTrace();
+               System.out.println("Server error!Exitting Thread："+Thread.currentThread().getName());
+        }finally{
+            if(user!=null){
+                OnlineUser.users.remove(user.getId());//在线用户列表 删除该用户
+                OnlineUser.users.remove(Thread.currentThread());
+            }//if
         }//try
     }//run
     
